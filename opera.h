@@ -15,6 +15,7 @@
 #include <cuda_runtime.h>
 #include <cusolverDn.h>
 #include <time.h>
+#include <fstream>
 
 
 typedef float dt;

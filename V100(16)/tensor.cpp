@@ -15,7 +15,7 @@ int main(int argc,char *argv[]){
 //	int c = atoi(argv[3]);		//Tensor size of a*b*c
 	int r1,r2,r3,r;
 //	int cnt[10] = {80,128,256,512,640,704,768,832,896,1024};
-	int cnt[32] = {80,128,256,512,640,704,768,832,896,80,128,256,512,640,704,768,832,896,80,128,256,512,640,704,768,832,896};
+	int cnt[27] = {80,128,256,512,640,704,768,832,896,80,128,256,512,640,704,768,832,896,80,128,256,512,640,704,768,832,896};
 for(int i = 0;i<27;i++){
 	int	a = cnt[i];
 	int b = a;
@@ -103,10 +103,8 @@ for(int i = 0;i<27;i++){
 	start = clock();
 	cp_als(X,A,B,C,a,b,c,r);
 	end = clock();
-    cout<<a<<"*"<<a<<"*"<<a<<"  "; 
-	cout<<(double)(end-start)/CLOCKS_PER_SEC<<"s"<<endl;
 	ofstream outfl("ctime.txt",ios::app);
-	outfl<<a<<"*"<<a<<"  ";
+    outfl<<a<<"*"<<a<<"*"<<a<<"  "; 
 	outfl<<(double)(end-start)/CLOCKS_PER_SEC<<"s"<<endl;
 	outfl.close();
 	delete[] X;X = nullptr;

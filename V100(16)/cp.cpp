@@ -30,6 +30,7 @@ for(int i = 0;i<10;i++){
 		}
 	}
 	cout<<r<<endl;
+
 	dt *X = new dt[a*b*c]();
 	srand(2);
 	for(int i = 0;i<a*b*c;i++){

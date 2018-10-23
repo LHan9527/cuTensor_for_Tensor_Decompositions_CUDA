@@ -9,20 +9,20 @@ Tensor decompositions on CUDA.And we implement two methods on general GPU and V1
 The running time of Tucker decomposition is shown as follows
 
 
-![tucker time](https://github.com/hust512/cuTensor_for_Decompositions_CUDA/blob/master/curve/tucker.jpg)
+![tucker time](https://github.com/hust512/cuTensor_for_Decompositions_CUDA/blob/master/curve/tucker.png)
 
 The running time of CP decomposition is shown as follows
 
 
-![cp time](https://github.com/hust512/cuTensor_for_Decompositions_CUDA/blob/master/curve/cp.jpg)
+![cp time](https://github.com/hust512/cuTensor_for_Decompositions_CUDA/blob/master/curve/cp.png)
 
 The speedup of Tucker decomposition is shown as follows
 
 
-![tucker time](https://github.com/hust512/cuTensor_for_Decompositions_CUDA/blob/master/curve/tspeedup.jpg)
+![tucker time](https://github.com/hust512/cuTensor_for_Decompositions_CUDA/blob/master/curve/tspeedup.png)
 
 The speedup of CP decomposition is shown as follows
 
 
-![cp time](https://github.com/hust512/cuTensor_for_Decompositions_CUDA/blob/master/curve/cspeedup.jpg)
+![cp time](https://github.com/hust512/cuTensor_for_Decompositions_CUDA/blob/master/curve/cspeedup.png)
     

@@ -6,6 +6,7 @@
  ************************************************************************/
 
 #include "opera.h"
+#include <fstream>
 typedef float dt;
 using namespace std;
 int main(int argc,char *argv[]){
@@ -13,8 +14,9 @@ int main(int argc,char *argv[]){
 //	int b = atoi(argv[2]);
 //	int c = atoi(argv[3]);		//Tensor size of a*b*c
 	int r1,r2,r3,r;
-	int cnt[10] = {80,128,256,512,640,704,768,832,896,1024};
-/*for(int i = 0;i<10;i++){
+//	int cnt[10] = {80,128,256,512,640,704,768,832,896,1024};
+	int cnt[27] = {80,128,256,512,640,704,768,832,896,80,128,256,512,640,704,768,832,896,80,128,256,512,640,704,768,832,896};
+for(int i = 0;i<27;i++){
 	int	a = cnt[i];
 	int b = a;
 	int c = a;
@@ -26,12 +28,6 @@ int main(int argc,char *argv[]){
 		 r1 = a/8;			//assume the core size of r1*r2*r3
 		 r2 = b/8;
 		 r3 = c/8;
-		
-        while(r1%8!=0){
-            r1--;
-            r2--;
-            r3--;
-        }
 		
 	}
     cout<<r1<<endl;
@@ -53,9 +49,14 @@ int main(int argc,char *argv[]){
 	start = clock();
 	HOSVD(A,core,U1,U2,U3,a,b,c);	//function for tuckey 
 	end = clock();
-	cout<<a<<"*"<<a<<"  ";
+	cout<<a<<"*"<<a<<"a"<<"  ";
 	cout<<(double)(end-start)/CLOCKS_PER_SEC<<"s"<<endl;
 //	printTensor(core,r1,r2,r3);
+	
+	ofstream outfile("ttime.txt",ios::app);
+	outfile<<a<<"*"<<a<<"  ";
+	outfile<<(double)(end-start)/CLOCKS_PER_SEC<<"s"<<endl;
+	outfile.close();
 	cout<<"all is over"<<endl;
 
 
@@ -64,9 +65,10 @@ int main(int argc,char *argv[]){
 	delete[] U2; U2 = nullptr;
 	delete[] U3; U3 = nullptr;
 	delete[] core; core = nullptr;
+//	break;
 }
-*/
-for(int i = 0;i<10;i++){
+
+for(int i = 0;i<27;i++){
     int a = cnt[i];
     int b = a;
     int c = a;
@@ -101,12 +103,17 @@ for(int i = 0;i<10;i++){
 	start = clock();
 	cp_als(X,A,B,C,a,b,c,r);
 	end = clock();
-    cout<<a<<"*"<<a<<"*"<<a<<"  "; 
+    cout<<a<<"*"<<a<<"*"<<"*"<<a<<"  "; 
 	cout<<(double)(end-start)/CLOCKS_PER_SEC<<"s"<<endl;
+	ofstream outfl("ctime.txt",ios::app);
+	outfl<<a<<"*"<<a<<"*"<<"  ";
+	outfl<<(double)(end-start)/CLOCKS_PER_SEC<<"s"<<endl;
+	outfl.close();
 	delete[] X;X = nullptr;
 	delete[] A;A = nullptr;
 	delete[] B;B = nullptr;
 	delete[] C;C = nullptr;
+//	break;
 }
 	return 0;
 

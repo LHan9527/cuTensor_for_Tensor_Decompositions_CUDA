@@ -5,15 +5,15 @@ void SBgemm(dt *A,dt *core,dt *U1,dt *U2,dt *U3,int a,int b,int c){
 	int r1 = a/8;
 	int r2 = b/8;
 	int r3 = c/8;
-		while(r1%8!=0){
-			r1--;
-		}
-		while(r2%8!=0){
-			r2--;
-		}
-		while(r3%8!=0){
-			r3--;
-		}
+	while(r1%8!=0){
+		r1--;
+	}
+	while(r2%8!=0){
+		r2--;
+	}
+	while(r3%8!=0){
+		r3--;
+	}
 cout<<"come in SBgemm"<<endl;
 //	int r1 = 2;
 //	int r2 = 3;
@@ -21,7 +21,7 @@ cout<<"come in SBgemm"<<endl;
 //	dt *temp1 = new dt[b*r1*c]();
 //	dt *temp2 = new dt[r1*r2*c]();
 //	dt *temp3 = new dt[c*r1*r2]();	//mode3 mat
-//	dt *temp = new dt[r3*r1*r2]();	//result to be convert
+	//dt *temp = new dt[r3*r1*r2]();	//result to be convert
 
 	//compute A ×1 U1'×2 U2'×3 U3'
 	// first compute U1'[X1,X2,X3～～Xc]U2 = temp;   then temp*U3'   
@@ -54,18 +54,8 @@ cout<<"come in SBgemm"<<endl;
 	cublasHandle_t handle;
 	cublasCreate(&handle);
 	cublasSetMathMode(handle,CUBLAS_TENSOR_OP_MATH);
-	half *d_a;
-	half *d_u1;
-	cudaMalloc((void **)&d_a,a*b*c*sizeof(half));
-	cudaMalloc((void **)&d_u1,a*r1*sizeof(half));
 	
 	dim3 threads(512,1,1);
-	dim3 bk((a*b*c+512-1)/512,1,1);
-	dim3 bk1((a*r1+512-1)/512,1,1);
-	f2h<<<bk,threads>>>(d_A,d_a,a*b*c);
-	f2h<<<bk1,threads>>>(d_U1,d_u1,a*r1);
-	cudaFree(d_U1);
-	cudaFree(d_A);
 	
 
 	cublasGemmStridedBatchedEx(
@@ -77,12 +67,12 @@ cout<<"come in SBgemm"<<endl;
 			r1,				//col of B C
 			a,				//col of A ,row of B
 			&alpha,
-			d_a,
-			CUDA_R_16F,
+			d_A,
+			CUDA_R_32F,
 			b,				//leading dimension store A
 			b*a,			//step between two mat
-		   	d_u1,
-			CUDA_R_16F,
+		   	d_U1,
+			CUDA_R_32F,
 			r1,
 			0,
 			&beta,
@@ -95,8 +85,8 @@ cout<<"come in SBgemm"<<endl;
 			CUBLAS_GEMM_DEFAULT
 
 			);
-	cudaFree(d_a);
-	cudaFree(d_u1);
+	cudaFree(d_U1);
+	cudaFree(d_A);
 	//now d_temp1 store the real value col first
 //	cudaMemcpy(temp1,d_temp1,sizeof(dt)*b*r1*c,cudaMemcpyDeviceToHost);
 //	printTensor(temp1,r1,b,c);
@@ -105,17 +95,7 @@ cout<<"come in SBgemm"<<endl;
 	cudaMalloc((void **)&d_temp2,sizeof(dt)*r1*r2*c);
 	cudaMemcpy(d_U2,U2,sizeof(dt)*b*r2,cudaMemcpyHostToDevice);
 
-	half *d_htemp1;
-	half *d_u2;
-	cudaMalloc((void **)&d_htemp1,b*r1*c*sizeof(half));
-	cudaMalloc((void **)&d_u2,b*r2*sizeof(half));
 	
-	dim3 bk2((r1*b*c+512-1)/512,1,1);
-	dim3 bk3((b*r2+512-1)/512,1,1);
-	f2h<<<bk2,threads>>>(d_temp1,d_htemp1,r1*b*c);
-	f2h<<<bk3,threads>>>(d_U2,d_u2,b*r2);
-	cudaFree(d_U2);
-	cudaFree(d_temp1);
 
 	cublasGemmStridedBatchedEx(
 			
@@ -126,12 +106,12 @@ cout<<"come in SBgemm"<<endl;
 			r1,
 			b,
 			&alpha,
-			d_u2,
-			CUDA_R_16F,
+			d_U2,
+			CUDA_R_32F,
 			r2,
 			0,
-			d_htemp1,
-			CUDA_R_16F,
+			d_temp1,
+			CUDA_R_32F,
 			b,
 			b*r1,
 			&beta,
@@ -148,8 +128,8 @@ cout<<"come in SBgemm"<<endl;
 //	cudaMemcpy(temp2,d_temp2,sizeof(dt)*r1*r2*c,cudaMemcpyDeviceToHost);
 	
 //	printTensor(temp2,r1,r2,c);
-	cudaFree(d_htemp1);
-	cudaFree(d_u2);
+	cudaFree(d_U2);
+	cudaFree(d_temp1);
 
 	cudaMalloc((void **)&d_temp3,sizeof(dt)*r1*r2*c);	//mode 3 mat
 
@@ -168,17 +148,7 @@ cout<<"come in SBgemm"<<endl;
 	cudaMemcpy(d_U3,U3,sizeof(dt)*c*r3,cudaMemcpyHostToDevice);
 	cudaMalloc((void **)&d_temp,sizeof(dt)*r1*r2*r3);
 
-	half *d_htemp3;
-	half *d_u3;
-	cudaMalloc((void **)&d_htemp3,r2*r1*c*sizeof(half));
-	cudaMalloc((void **)&d_u3,c*r3*sizeof(half));
 	
-	dim3 bk4((r1*r2*c+512-1)/512,1,1);
-	dim3 bk5((c*r3+512-1)/512,1,1);
-	f2h<<<bk4,threads>>>(d_temp3,d_htemp3,r1*r2*c);
-	f2h<<<bk5,threads>>>(d_U3,d_u3,c*r3);
-	cudaFree(d_U3);
-	cudaFree(d_temp3);
 
 	cublasGemmEx(
 			
@@ -189,11 +159,11 @@ cout<<"come in SBgemm"<<endl;
 			r3,
 			c,
 			&alpha,
-			d_htemp3,
-			CUDA_R_16F,
+			d_temp3,
+			CUDA_R_32F,
 			r1*r2,
-			d_u3,
-			CUDA_R_16F,
+			d_U3,
+			CUDA_R_32F,
 			r3,
 			&beta,
 			d_temp,
@@ -204,8 +174,8 @@ cout<<"come in SBgemm"<<endl;
 
 			);
 
-	cudaFree(d_htemp3);
-	cudaFree(d_u3);
+	cudaFree(d_U3);
+	cudaFree(d_temp3);
 
 	dim3 blocks1((r1*r2*r3+512-1)/512,1,1);
 	dt *d_core;
@@ -400,7 +370,11 @@ void HOSVD(dt *A,dt *core,dt *U1,dt *U2,dt *U3,int a,int b,int c){
 	int r3 = c/8;
 	while(r1%8!=0){
 		r1--;
+	}
+	while(r2%8!=0){
 		r2--;
+	}
+	while(r3%8!=0){
 		r3--;
 	}
 //	int r1 = 2;
@@ -690,15 +664,7 @@ void getvector(dt *A,dt *U,int m,int n,int r){
 	cublasHandle_t handle;
 	cublasCreate(&handle);
 
-	half *d_a;
-	half *d_at;
-	cudaMalloc((void**)&d_a,sizeof(half)*m*n);
-	cudaMalloc((void**)&d_at,sizeof(half)*m*n);
-	f2h<<<blocks,threads>>>(d_A,d_a,m*n);
-	f2h<<<blocks,threads>>>(d_AT,d_at,m*n);
 	cublasSetMathMode(handle,CUBLAS_TENSOR_OP_MATH);
-	cudaFree(d_A);
-	cudaFree(d_AT);
 
 	cublasGemmEx(
 			handle,
@@ -708,11 +674,11 @@ void getvector(dt *A,dt *U,int m,int n,int r){
 			m,
 			n,
 			&alpha,
-			d_at,
-			CUDA_R_16F,
+			d_AT,
+			CUDA_R_32F,
 			m,
-			d_a,
-			CUDA_R_16F,
+			d_A,
+			CUDA_R_32F,
 			n,
 			&beta,
 			d_AAT,  //store A*A'
@@ -722,8 +688,8 @@ void getvector(dt *A,dt *U,int m,int n,int r){
 			CUBLAS_GEMM_DEFAULT
 			);
 	cublasDestroy(handle);
-	cudaFree(d_a);
-	cudaFree(d_at);
+	cudaFree(d_A);
+	cudaFree(d_AT);
 // eig
 	cusolverDnHandle_t cusolverH = NULL;
 	dt *V = new dt[m*m]();
@@ -803,13 +769,6 @@ void KRao(dt *X,dt *M,dt *N,dt *left,dt *right,int m,int n,int r,int k,int flag)
 	dim3 threads(512,1,1);
 	dim3 blocks1((m*r+512-1)/512,1,1);
 	transpose<<<blocks1,threads>>>(d_M,d_MT,m,r);
-	half *d_m;
-	half *d_mt;
-	cudaMalloc((void **)&d_m,sizeof(half)*m*r);
-	cudaMalloc((void **)&d_mt,sizeof(half)*m*r);
-	f2h<<<blocks1,threads>>>(d_M,d_m,m*r);
-	f2h<<<blocks1,threads>>>(d_MT,d_mt,m*r);
-	cudaFree(d_MT);
 
 	dt *d_MTM;
 	cudaMalloc((void **)&d_MTM,sizeof(dt)*r*r);
@@ -828,11 +787,11 @@ void KRao(dt *X,dt *M,dt *N,dt *left,dt *right,int m,int n,int r,int k,int flag)
 			r,
 			m,
 			&alpha,
-			d_m,
-			CUDA_R_16F,
+			d_M,
+			CUDA_R_32F,
 			r,
-			d_mt,
-			CUDA_R_16F,
+			d_MT,
+			CUDA_R_32F,
 			m,
 			&beta,
 			d_MTM,
@@ -841,10 +800,7 @@ void KRao(dt *X,dt *M,dt *N,dt *left,dt *right,int m,int n,int r,int k,int flag)
 			CUDA_R_32F,
 			CUBLAS_GEMM_DEFAULT
 			);
-	cudaFree(d_m);
-	cudaFree(d_mt);
-
-
+	cudaFree(d_MT);
 
 	dt *d_N;
 	dt *d_NT;
@@ -854,14 +810,7 @@ void KRao(dt *X,dt *M,dt *N,dt *left,dt *right,int m,int n,int r,int k,int flag)
 	cudaMalloc((void **)&d_NT,sizeof(dt)*n*r);
 	dim3 blocks2((n*r+512-1)/512,1,1);
 	transpose<<<blocks2,threads>>>(d_N,d_NT,n,r);
-	half *d_n;
-	half *d_nt;
-	cudaMalloc((void **)&d_n,sizeof(half)*n*r);
-	cudaMalloc((void **)&d_nt,sizeof(half)*n*r);
 	
-	f2h<<<blocks2,threads>>>(d_N,d_n,n*r);
-	f2h<<<blocks2,threads>>>(d_NT,d_nt,n*r);
-	cudaFree(d_NT);
 
 	//now d_MT*M  d_NT*N
 
@@ -875,11 +824,11 @@ void KRao(dt *X,dt *M,dt *N,dt *left,dt *right,int m,int n,int r,int k,int flag)
 			r,
 			n,
 			&alpha,
-			d_n,
-			CUDA_R_16F,
+			d_N,
+			CUDA_R_32F,
 			r,
-			d_nt,
-			CUDA_R_16F,
+			d_NT,
+			CUDA_R_32F,
 			n,
 			&beta,
 			d_NTN,
@@ -888,8 +837,7 @@ void KRao(dt *X,dt *M,dt *N,dt *left,dt *right,int m,int n,int r,int k,int flag)
 			CUDA_R_32F,
 			CUBLAS_GEMM_DEFAULT
 			);
-	cudaFree(d_n);
-	cudaFree(d_nt);
+	cudaFree(d_NT);
 
 	dim3 blocks3((r*r+512-1)/512,1,1);
 	elepro<<<blocks3,threads>>>(d_MTM,d_NTN,r);
@@ -923,16 +871,6 @@ void KRao(dt *X,dt *M,dt *N,dt *left,dt *right,int m,int n,int r,int k,int flag)
 	}
 	cudaFree(d_X);
 
-	half *d_x_m;
-	half *d_hdot;
-	cudaMalloc((void**)&d_x_m,sizeof(half)*m*n*k);
-	cudaMalloc((void**)&d_hdot,sizeof(half)*m*n*r);
-	f2h<<<blocks4,threads>>>(d_X_M,d_x_m,m*n*k);
-	f2h<<<blocks,threads>>>(d_dot,d_hdot,m*n*r);
-
-	cudaFree(d_X_M);
-	cudaFree(d_dot);
-
 	// d_X1*d_dot = left
 	dt *d_left;
 	cudaMalloc((void**)&d_left,sizeof(dt)*k*r);
@@ -944,11 +882,11 @@ void KRao(dt *X,dt *M,dt *N,dt *left,dt *right,int m,int n,int r,int k,int flag)
 			k,
 			m*n,
 			&alpha,
-			d_hdot,
-			CUDA_R_16F,
+			d_dot,
+			CUDA_R_32F,
 			r,
-			d_x_m,
-			CUDA_R_16F,
+			d_X_M,
+			CUDA_R_32F,
 			m*n,
 			&beta,
 			d_left,
@@ -959,9 +897,9 @@ void KRao(dt *X,dt *M,dt *N,dt *left,dt *right,int m,int n,int r,int k,int flag)
 			);
 	cudaMemcpy(left,d_left,sizeof(dt)*k*r,cudaMemcpyDeviceToHost);
 	cublasDestroy(handle);
-	cudaFree(d_x_m);
-	cudaFree(d_hdot);
 	cudaFree(d_left);
+	cudaFree(d_X_M);
+	cudaFree(d_dot);
 
 }
 
