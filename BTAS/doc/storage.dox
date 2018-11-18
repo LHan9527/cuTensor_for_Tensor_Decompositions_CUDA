@@ -1,0 +1,15 @@
+/**
+  @addtogroup TWG_Storage
+
+  \section sec_TWG_Storage_Concept_Storage Storage Concept
+  
+  Storage represents a sequence whose elements can be efficiently (constant cost) accessed in random order.
+  Storage is related to Sequence Container (<a href="">C++ Standard, Section 23.2.3</a>);
+  in fact the following standard containers meet the Storage requirements:
+  <ul>
+   <li> \c std::vector </li>
+   <li> \c std::array </li>
+   <li> \c std::valarray </li>
+  </ul>
+
+*/

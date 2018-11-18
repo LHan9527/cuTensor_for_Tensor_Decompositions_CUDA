@@ -1,0 +1,41 @@
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.x
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+
+# Temporary files
+*~
+*.swp
+
+# CMake files
+CMakeCache.txt
+CMakeFiles/
+Makefile
+
+# Testing files
+Testing/
+btas_test
+
+# Scratch directory
+work/
+
+# Generated files by Doxygen
+doc/Doxyfile
+doc/html/
+doc/latex/
+
+# Binary file for unit test
+unittest/test
+build
+build_cblas
+test
