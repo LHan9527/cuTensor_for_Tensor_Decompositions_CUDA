@@ -56,15 +56,22 @@ void notranpro(dt *A,dt *B,dt *res,int a,int b,int c){
 	
 }
 
-void cunoTran(dt *A,dt *B,dt *res,int a,int b,int c){
+	//U1'*A   m*a   a*(b*c) 
+/*void cunoTran(dt *A,dt *U1,dt *res,int a,int b,int c){
 	dt *d_A = NULL;	
-	dt *d_B = NULL;	
+	dt *d_U1 = NULL;	
 	dt *d_res = NULL;
-	cudaMalloc((void**)&d_A,sizeof(dt)*a*b); 	//a*b	
-	cudaMalloc((void**)&d_B,sizeof(dt)*a*c);	//a*c	
-	cudaMalloc((void**)&d_res,sizeof(dt)*c*b);	//b*c
-	cudaMemcpy(d_A,A,sizeof(dt)*a*b,cudaMemcpyHostToDevice);
-	cudaMemcpy(d_B,B,sizeof(dt)*a*c,cudaMemcpyHostToDevice);
+	dt *d_AA = NULL;
+	int m = a*0.1;
+	cudaMalloc((void**)&d_A,sizeof(dt)*a*b*c); 	//a*b*c	
+	cudaMalloc((void**)&d_AA,sizeof(dt)*a*b*c); 	//a*(b*c)	
+	cudaMalloc((void**)&d_U1,sizeof(dt)*a*m);	//a*m	
+	cudaMalloc((void**)&d_res,sizeof(dt)*m*b*c);
+	cudaMemcpy(d_A,A,sizeof(dt)*a*b*c,cudaMemcpyHostToDevice);
+	cudaMemcpy(d_U1,U1,sizeof(dt)*a*m,cudaMemcpyHostToDevice);
+	dim3 thread(512,1,1);
+	dim3 block((a*b*c+512-1)/512,1,1);
+	mode1tran<<<block,thread>>>(d_A,d_AA,a,b,c);
 	dt alpha = 1.0;
 	dt beta = 0.0;
 	cublasHandle_t handle;
@@ -73,24 +80,25 @@ void cunoTran(dt *A,dt *B,dt *res,int a,int b,int c){
 		handle,
 		CUBLAS_OP_N,
 		CUBLAS_OP_T,
-		c,
-		b,
+		b*c,
+		m,
 		a,
 		&alpha,
-		d_B,
-		c,
-		d_A,
-		b,
+		d_AA,
+		b*c,
+		d_U1,
+		m,
 		&beta,
 		d_res,
-		c
+		b*c
 	           );
 
-	cudaMemcpy(res,d_res,sizeof(dt)*c*b,cudaMemcpyDeviceToHost);
+	cudaMemcpy(res,d_res,sizeof(dt)*c*b*m,cudaMemcpyDeviceToHost);
 	cublasDestroy(handle);
 	cudaFree(d_A);
-	cudaFree(d_B);
+	cudaFree(d_U1);
 	cudaFree(d_res);
+	cudaFree(d_AA);
 }
 void cuTran(dt *A,dt *B,dt *res,int a,int b,int c){
 	dt *d_A = NULL;	
@@ -149,16 +157,18 @@ void cuTran(dt *A,dt *B,dt *res,int a,int b,int c){
 
 }
 
-void cuStrideMode(dt *A,dt *B,dt *res,int a,int b,int c){
-	// A is a*b*c B is b*c res is a*c*c
+void cuStrideMode(dt *A,dt *U1,dt *res,int a,int b,int c){
+	// A is a*b*c B is a*m res is m*b*c
 	dt *d_A = NULL;	
-	dt *d_B = NULL;	
+	dt *d_U1 = NULL;	
 	dt *d_res = NULL;
+	int m = a*0.1;
 	cudaMalloc((void**)&d_A,sizeof(dt)*a*b*c); 	//a*b*c	
-	cudaMalloc((void**)&d_B,sizeof(dt)*b*c);	//b*c	
-	cudaMalloc((void**)&d_res,sizeof(dt)*a*c*c);	//a*c*c
+
+	cudaMalloc((void**)&d_U1,sizeof(dt)*a*m);	//b*c	
+	cudaMalloc((void**)&d_res,sizeof(dt)*b*c*m);	//a*c*c
 	cudaMemcpy(d_A,A,sizeof(dt)*a*b*c,cudaMemcpyHostToDevice);
-	cudaMemcpy(d_B,B,sizeof(dt)*b*c,cudaMemcpyHostToDevice);
+	cudaMemcpy(d_U1,U1,sizeof(dt)*a*m,cudaMemcpyHostToDevice);
 	dt alpha = 1.0;
 	dt beta = 0.0;
 	cublasHandle_t handle;
@@ -169,31 +179,31 @@ void cuStrideMode(dt *A,dt *B,dt *res,int a,int b,int c){
 	cublasSgemmStridedBatched(
 		handle,
 		CUBLAS_OP_N,
-		CUBLAS_OP_N,
-		a,
-		c,
+		CUBLAS_OP_T,
 		b,
+		m,
+		a,
 		&alpha,
 		d_A,
-		a,
-		a*b,
-		d_B,
 		b,
+		a*b,
+		d_U1,
+		m,
 		0,
 		&beta,
 		d_res,
-		a,
-		a*c,
+		b,
+		b*m,
 		c
 		);
 
 	time2 = clock();
-	cout<<(double)(time2-time1)/CLOCKS_PER_SEC<<"s"<<endl;
-	cudaMemcpy(res,d_res,sizeof(dt)*a*c*c,cudaMemcpyDeviceToHost);
-	printTensor(res,a,c,c);
+//	cout<<(double)(time2-time1)/CLOCKS_PER_SEC<<"s"<<endl;
+	cudaMemcpy(res,d_res,sizeof(dt)*b*c*m,cudaMemcpyDeviceToHost);
+//	printTensor(res,a,c,c);
 	cublasDestroy(handle);
 	cudaFree(d_A);
-	cudaFree(d_B);
+	cudaFree(d_U1);
 	cudaFree(d_res);
 	
 }
@@ -244,4 +254,5 @@ void cuStride(dt *A,dt *B,dt *res,int a,int b,int c){
 	cudaFree(d_B);
 	cudaFree(d_res);
 
-}
+}*/
+
