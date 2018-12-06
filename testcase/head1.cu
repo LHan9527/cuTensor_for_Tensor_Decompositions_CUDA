@@ -1,5 +1,34 @@
 #include "head.h"
 
+void Hosvd(dt *A,dt *res,dt *U1,dt *U2,dt *U3,int a,int b,int c){
+	int m,n,k;
+	if(a<10){
+
+		 m = 1;
+		 n=1;
+		 k=1;
+	}else{
+	 m = a/8;
+	 n = b/8;
+	 k = c/8;}
+
+	dt *A1 = new dt[a*b*c]();
+	dt *A2 = new dt[a*b*c]();
+	dt *A3 = new dt[a*b*c]();
+	clock_t t1,t2;
+	t1=clock();
+	Btensor2mat(A,A1,A2,A3,a,b,c);
+	getvector1(A1,U1,a,b*c,m);
+	getvector1(A2,U2,b,a*c,n);
+	getvector1(A3,U3,c,b*a,k);
+	newtest16(A,U1,U2,U3,res,a,b,c);
+	t2=clock();
+	cout<<(double)(t2-t1)/CLOCKS_PER_SEC<<"s"<<endl;
+	
+	delete[] A1;  A1=nullptr;
+	delete[] A2;  A2=nullptr;
+	delete[] A3;  A3=nullptr;
+}
 void newtest(dt *A,dt *U1,dt *U2,dt *U3,dt *res1,int a,int b,int c){
 	int m = a*0.1;
 	int n = b*0.1;
@@ -205,9 +234,16 @@ void newtest32(dt *A,dt *U1,dt *U2,dt *U3,dt *res1,int a,int b,int c){
 }
 
 void newtest16(dt *A,dt *U1,dt *U2,dt *U3,dt *res1,int a,int b,int c){
-	int m = a*0.1;
-	int n = b*0.1;
-	int k = c*0.1;
+	int m,n,k;
+	if(a<10){
+
+		 m = 1;
+		 n=1;
+		 k=1;
+	}else{
+	 m = a/8;
+	 n = b/8;
+	 k = c/8;}
 	dt *d_A;
 	cudaMalloc((void**)&d_A,sizeof(dt)*a*b*c);
 	cudaMemcpy(d_A,A,sizeof(dt)*a*b*c,cudaMemcpyHostToDevice);
